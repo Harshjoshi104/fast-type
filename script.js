@@ -1,14 +1,15 @@
 const textToType = document.getElementById('textToType');
 const inputBox = document.getElementById('inputBox');
 const resetBtn = document.getElementById('resetBtn');
+const timerDisplay = document.getElementById('timer');
+const wpmDisplay = document.getElementById('wpm');
+const accuracyDisplay = document.getElementById('accuracy');
 
-  resetBtn.addEventListener('click', () => {
-    location.reload(); 
-  });
+resetBtn.addEventListener('click', () => {
+  location.reload();
+});
 
-
-const words = [
-  "apple","banana","orange","grape","mango","lemon","peach","cherry","berry","kiwi",
+const words = [ "apple","banana","orange","grape","mango","lemon","peach","cherry","berry","kiwi",
   "melon","plum","pear","fig","lime","apricot","avocado","coconut","papaya","date",
   "guava","nectarine","pomegranate","tangerine","persimmon","blueberry","raspberry","strawberry","blackberry","cranberry",
   "pineapple","watermelon","cantaloupe","honeydew","passionfruit","dragonfruit","lychee","jackfruit","durian","kumquat",
@@ -29,13 +30,11 @@ const words = [
   "river","lake","sea","ocean","mountain","hill","forest","desert","beach","island",
   "sun","moon","star","planet","sky","cloud","rain","snow","wind","storm",
   "dog","cat","rabbit","horse","cow","sheep","goat","pig","lion","tiger",
-  "elephant","monkey","bear","fox","wolf","deer","kangaroo","giraffe","zebra","panda"
-];
-
+  "elephant","monkey","bear","fox","wolf","deer","kangaroo","giraffe","zebra","panda" ];
 
 function generateText() {
   let textArray = [];
-  for(let i = 0; i < 45; i++) {
+  for (let i = 0; i < 45; i++) {
     const randomIndex = Math.floor(Math.random() * words.length);
     textArray.push(words[randomIndex]);
   }
@@ -45,18 +44,21 @@ function generateText() {
 let currentText = generateText();
 textToType.innerText = currentText;
 
-let startTime;
+let timeLeft = 30;
+let timerStarted = false;
+let timer;
 let finished = false;
 
 inputBox.addEventListener('input', () => {
+  if (!timerStarted) {
+    startTimer();
+    timerStarted = true;
+  }
+
   const typed = inputBox.value;
 
- 
-  if (!startTime) startTime = new Date();
-
-  
   let formattedText = '';
-  for(let i = 0; i < currentText.length; i++) {
+  for (let i = 0; i < currentText.length; i++) {
     if (i < typed.length) {
       formattedText += `<span class="${typed[i] === currentText[i] ? 'correct' : 'incorrect'}">${currentText[i]}</span>`;
     } else {
@@ -64,17 +66,42 @@ inputBox.addEventListener('input', () => {
     }
   }
   textToType.innerHTML = formattedText;
-
-  
-  if (typed.length === currentText.length && !finished) {
-    finished = true;
-    const endTime = new Date();
-    const timeTaken = (endTime - startTime) / 1000 / 60;
-    const wpm = Math.round(45 / timeTaken);
-    let correctChars = 0;
-    for (let i = 0; i < currentText.length; i++) {
-    if (typed[i] === currentText[i]) correctChars++;
-    }
-    const accuracy = ((correctChars / currentText.length) * 100).toFixed(2);
-    alert(`You finished!\nWPM: ${wpm}\nAccuracy: ${accuracy}%`);  }
 });
+
+function startTimer() {
+  timer = setInterval(() => {
+    timeLeft--;
+    timerDisplay.textContent = timeLeft;
+
+    if (timeLeft === 0) {
+      clearInterval(timer);
+      finishTest();
+    }
+  }, 1000);
+}
+
+function finishTest() {
+  finished = true;
+  inputBox.disabled = true;
+
+  const typedText = inputBox.value.trim();
+  const wordsTyped = typedText.length / 5; // standard typing logic
+  const wpm = Math.round(wordsTyped * 2); // 30 sec → ×2
+
+  let correctChars = 0;
+  for (let i = 0; i < typedText.length; i++) {
+    if (typedText[i] === currentText[i]) correctChars++;
+  }
+
+  const accuracy = typedText.length === 0
+    ? 0
+    : ((correctChars / typedText.length) * 100).toFixed(2);
+
+  wpmDisplay.textContent = wpm;
+  accuracyDisplay.textContent = accuracy;
+}
+
+
+
+
+
